@@ -2,20 +2,34 @@ import { GoogleGenAI } from '@google/genai';
 
 let aiInstance: GoogleGenAI | null = null;
 let currentApiKey: string | null = null;
+let currentApiKeySource: 'user' | 'default' | null = null;
+
+const API_KEY_STORAGE_KEY = 'zenova_gemini_api_key';
+
+function getStoredUserApiKey(): string {
+  if (typeof localStorage === 'undefined') return '';
+  return localStorage.getItem(API_KEY_STORAGE_KEY)?.trim() || '';
+}
 
 function getAI(): GoogleGenAI {
-  const userKey = localStorage.getItem('zenova_gemini_api_key');
-  const envKey = process.env.GEMINI_API_KEY;
+  const userKey = getStoredUserApiKey();
+  const envKey = process.env.GEMINI_API_KEY?.trim() || '';
   const keyToUse = userKey || envKey;
+  const keySource = userKey ? 'user' : 'default';
 
-  if (!aiInstance || currentApiKey !== keyToUse) {
+  if (!aiInstance || currentApiKey !== keyToUse || currentApiKeySource !== keySource) {
     if (!keyToUse) {
       throw new Error("No Gemini API Key found. Please add it in Settings.");
     }
     aiInstance = new GoogleGenAI({ apiKey: keyToUse });
     currentApiKey = keyToUse;
+    currentApiKeySource = keySource;
   }
   return aiInstance;
+}
+
+function getApiKeySource(): 'user' | 'default' | null {
+  return currentApiKeySource || (getStoredUserApiKey() ? 'user' : null);
 }
 
 const getInstructions = () => [
@@ -77,7 +91,11 @@ export async function generateChatResponse(messages: { role: string; content: st
     console.error("Gemini API Error:", error);
     let errorMessage = "Oops! I ran into a bit of trouble connecting to my brain.\n\n";
     if (error?.message?.includes("429") || error?.message?.toLowerCase().includes("quota") || error?.message?.toLowerCase().includes("exhausted")) {
-      errorMessage += "*(It looks like the default AI quota has been exceeded. You can add your own free Gemini API Key in the **Settings** menu by clicking on the gear icon!)*";
+      if (getApiKeySource() === 'user') {
+        errorMessage += "*(I used the Gemini API key saved in Settings, but Google still returned a quota limit. Please check that this key has Gemini API quota available in Google AI Studio, or try another key.)*";
+      } else {
+        errorMessage += "*(It looks like the default AI quota has been exceeded. You can add your own free Gemini API Key in the **Settings** menu by clicking on the gear icon!)*";
+      }
     } else {
       errorMessage += `*(Error Details: ${error.message}. If this persists, try adding your own Gemini API Key in the **Settings** menu.)*`;
     }
