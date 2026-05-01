@@ -1,9 +1,19 @@
 import { GoogleGenAI } from '@google/genai';
 
 let aiInstance: GoogleGenAI | null = null;
+let currentApiKey: string | null = null;
+
 function getAI(): GoogleGenAI {
-  if (!aiInstance) {
-    aiInstance = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const userKey = localStorage.getItem('zenova_gemini_api_key');
+  const envKey = process.env.GEMINI_API_KEY;
+  const keyToUse = userKey || envKey;
+
+  if (!aiInstance || currentApiKey !== keyToUse) {
+    if (!keyToUse) {
+      throw new Error("No Gemini API Key found. Please add it in Settings.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey: keyToUse });
+    currentApiKey = keyToUse;
   }
   return aiInstance;
 }
@@ -65,7 +75,13 @@ export async function generateChatResponse(messages: { role: string; content: st
       throw error;
     }
     console.error("Gemini API Error:", error);
-    return `Oops! I ran into a bit of trouble connecting to my brain.\n\n*(If you deployed this to Netlify, ensure you added **GEMINI_API_KEY** to your Site Configuration > Environment variables, then trigger a new deploy. Error Details: ${error.message})*`;
+    let errorMessage = "Oops! I ran into a bit of trouble connecting to my brain.\n\n";
+    if (error?.message?.includes("429") || error?.message?.toLowerCase().includes("quota") || error?.message?.toLowerCase().includes("exhausted")) {
+      errorMessage += "*(It looks like the default AI quota has been exceeded. You can add your own free Gemini API Key in the **Settings** menu by clicking on the gear icon!)*";
+    } else {
+      errorMessage += `*(Error Details: ${error.message}. If this persists, try adding your own Gemini API Key in the **Settings** menu.)*`;
+    }
+    return errorMessage;
   }
 }
 

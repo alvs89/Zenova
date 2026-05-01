@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Volume2, VolumeX, Clock, User as UserIcon, Camera, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Volume2, VolumeX, Clock, User as UserIcon, Camera, HelpCircle, ChevronDown, ChevronUp, Key } from 'lucide-react';
 import { useAppContext } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -87,8 +87,10 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
   const [localFocusDuration, setLocalFocusDuration] = useState(settings.focusDuration);
   const [localBreakDuration, setLocalBreakDuration] = useState(settings.breakDuration);
+  const [localApiKey, setLocalApiKey] = useState(localStorage.getItem('zenova_gemini_api_key') || '');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingTimers, setIsSavingTimers] = useState(false);
+  const [isSavingKey, setIsSavingKey] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -97,6 +99,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       setPhotoURL(user?.photoURL || '');
       setLocalFocusDuration(settings.focusDuration);
       setLocalBreakDuration(settings.breakDuration);
+      setLocalApiKey(localStorage.getItem('zenova_gemini_api_key') || '');
     }
   }, [isOpen, user, settings.focusDuration, settings.breakDuration]);
 
@@ -119,6 +122,21 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       console.error(e);
     } finally {
       setIsSavingTimers(false);
+    }
+  };
+
+  const handleSaveKey = () => {
+    setIsSavingKey(true);
+    try {
+      if (localApiKey.trim() === '') {
+        localStorage.removeItem('zenova_gemini_api_key');
+      } else {
+        localStorage.setItem('zenova_gemini_api_key', localApiKey.trim());
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTimeout(() => setIsSavingKey(false), 500); // small delay to show feedback
     }
   };
 
@@ -274,6 +292,35 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   className={cn("relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none", settings.theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700')}
                 >
                   <span className={cn("inline-block h-4 w-4 transform rounded-full bg-white transition-transform", settings.theme === 'dark' ? 'translate-x-6' : 'translate-x-1')} />
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-4">
+               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                <Key size={18} className="text-indigo-500" />
+                Gemini API Key
+              </h3>
+              
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  If you encounter quota errors, add your own free Gemini API key. It is saved locally in your browser.
+                </p>
+                <div className="min-w-0">
+                  <input 
+                    type="password"
+                    placeholder="AIzaSy..." 
+                    value={localApiKey}
+                    onChange={(e) => setLocalApiKey(e.target.value)}
+                    className="w-full box-border bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 text-slate-800 dark:text-slate-200"
+                  />
+                </div>
+                <button 
+                  onClick={handleSaveKey}
+                  disabled={isSavingKey || localApiKey === (localStorage.getItem('zenova_gemini_api_key') || '')}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors mt-1"
+                >
+                  {isSavingKey ? 'Saved!' : 'Save API Key'}
                 </button>
               </div>
             </div>
