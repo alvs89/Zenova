@@ -1,0 +1,123 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasOnly(['settings', 'focusStats', 'streak', 'mood', 'aiSchedule']) &&
+             (!('settings' in data) || (
+                data.settings is map &&
+                data.settings.keys().hasAll(['focusDuration', 'breakDuration', 'soundEnabled', 'theme']) &&
+                data.settings.keys().hasOnly(['focusDuration', 'breakDuration', 'soundEnabled', 'theme', 'journalFont']) &&
+                data.settings.focusDuration is number &&
+                data.settings.breakDuration is number &&
+                data.settings.soundEnabled is bool &&
+                data.settings.theme in ['light', 'dark'] &&
+                (!('journalFont' in data.settings) || data.settings.journalFont is string)
+             )) &&
+             (!('focusStats' in data) || (
+                data.focusStats is map &&
+                data.focusStats.keys().hasOnly(['sessionsCompleted', 'totalFocusMinutes']) &&
+                data.focusStats.sessionsCompleted is number &&
+                data.focusStats.totalFocusMinutes is number
+             )) &&
+             (!('streak' in data) || data.streak is number) &&
+             (!('mood' in data) || data.mood == null || data.mood in ['great', 'okay', 'stressed', 'overwhelmed', 'exhausted']) &&
+             (!('aiSchedule' in data) || data.aiSchedule == null || (data.aiSchedule is string && data.aiSchedule.size() <= 20000));
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['id', 'title', 'priority', 'completed', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.title is string && data.title.size() <= 1000 &&
+             data.priority in ['urgent', 'important', 'optional'] &&
+             data.completed is bool &&
+             data.createdAt is number &&
+             (!('deadline' in data) || data.deadline is string) &&
+             (!('subject' in data) || data.subject is string);
+    }
+
+    function isValidChatSession(data) {
+      return data.keys().hasAll(['id', 'title', 'messages', 'updatedAt', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.title is string && data.title.size() <= 500 &&
+             data.messages is list && data.messages.size() <= 1000 &&
+             data.updatedAt is number &&
+             data.createdAt is number;
+    }
+
+    function isValidStudyRecord(data) {
+      return data.keys().hasAll(['date', 'minutes']) &&
+             data.date is string && data.date.size() <= 20 &&
+             data.minutes is number;
+    }
+
+    function isValidJournalEntry(data) {
+      return data.keys().hasAll(['id', 'content', 'createdAt', 'updatedAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.content is string && data.content.size() <= 50000 &&
+             data.createdAt is number &&
+             data.updatedAt is number &&
+             (!('title' in data) || (data.title is string && data.title.size() <= 500)) &&
+             (!('font' in data) || (data.font is string && data.font.size() <= 128)) &&
+             (!('mood' in data) || data.mood == null || data.mood in ['great', 'okay', 'stressed', 'overwhelmed', 'exhausted']);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming());
+      
+      match /tasks/{taskId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming());
+        allow update: if isOwner(userId) && isValidId(taskId) && isValidTask(incoming());
+        allow delete: if isOwner(userId) && isValidId(taskId);
+      }
+      
+      match /chatSessions/{sessionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(sessionId) && isValidChatSession(incoming());
+        allow update: if isOwner(userId) && isValidId(sessionId) && isValidChatSession(incoming());
+        allow delete: if isOwner(userId) && isValidId(sessionId);
+      }
+      
+      match /journalEntries/{entryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(entryId) && isValidJournalEntry(incoming());
+        allow update: if isOwner(userId) && isValidId(entryId) && isValidJournalEntry(incoming());
+        allow delete: if isOwner(userId) && isValidId(entryId);
+      }
+
+      match /studyHistory/{dateStr} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(dateStr) && isValidStudyRecord(incoming());
+        allow update: if isOwner(userId) && isValidId(dateStr) && isValidStudyRecord(incoming());
+        allow delete: if isOwner(userId) && isValidId(dateStr);
+      }
+    }
+  }
+}

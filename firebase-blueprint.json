@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with settings and stats.",
+      "type": "object",
+      "properties": {
+        "settings": {
+          "type": "object",
+          "properties": {
+            "focusDuration": { "type": "number" },
+            "breakDuration": { "type": "number" },
+            "soundEnabled": { "type": "boolean" },
+            "theme": { "type": "string", "enum": ["light", "dark"] }
+          }
+        },
+        "focusStats": {
+          "type": "object",
+          "properties": {
+            "sessionsCompleted": { "type": "number" },
+            "totalFocusMinutes": { "type": "number" }
+          }
+        },
+        "streak": { "type": "number" },
+        "mood": { "type": "string", "enum": ["great", "okay", "stressed", "overwhelmed", "exhausted", ""] },
+        "aiSchedule": { "type": "string", "description": "The generated AI schedule for tasks" }
+      }
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A study task.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "deadline": { "type": "string" },
+        "subject": { "type": "string" },
+        "priority": { "type": "string", "enum": ["urgent", "important", "optional"] },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "title", "priority", "completed", "createdAt"]
+    },
+    "ChatSession": {
+      "title": "ChatSession",
+      "description": "A chat session with messages.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "role": { "type": "string", "enum": ["user", "assistant"] },
+              "content": { "type": "string" },
+              "timestamp": { "type": "number" },
+              "attachments": { "type": "array" }
+            }
+          }
+        },
+        "updatedAt": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "title", "messages", "updatedAt", "createdAt"]
+    },
+    "StudyRecord": {
+      "title": "StudyRecord",
+      "description": "Study minutes per day.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "minutes": { "type": "number" }
+      },
+      "required": ["date", "minutes"]
+    },
+    "JournalEntry": {
+      "title": "JournalEntry",
+      "description": "A wellness journal entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "mood": { "type": "string", "enum": ["great", "okay", "stressed", "overwhelmed", "exhausted"] },
+        "font": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "content", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profile containing settings and aggregate stats."
+    },
+    "users/{userId}/tasks/{taskId}": {
+      "schema": { "$ref": "Task" },
+      "description": "Tasks belonging to the user."
+    },
+    "users/{userId}/journalEntries/{entryId}": {
+      "schema": { "$ref": "JournalEntry" },
+      "description": "Journal entries belonging to the user."
+    },
+    "users/{userId}/chatSessions/{sessionId}": {
+      "schema": { "$ref": "ChatSession" },
+      "description": "Chat sessions belonging to the user."
+    },
+    "users/{userId}/studyHistory/{date}": {
+      "schema": { "$ref": "StudyRecord" },
+      "description": "Daily study history for the user."
+    }
+  }
+}
