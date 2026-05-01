@@ -1,3 +1,6 @@
+<div align="center">
+<img width="1200" height="475" alt="Zenova Banner" src="[https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6](https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6)" />
+
 # Zenova
 ### Study Smarter, Not Harder.
 
@@ -75,6 +78,17 @@ Zenova is built with a modern, high-performance stack to ensure a seamless and r
 * **Assistant**: Start a new chat to upload documents or ask questions about your curriculum.
 * **Planner**: Add your assignments and tasks; use the AI suggestions to organize your week.
 * **Wellness**: Access the Smart Focus timer to begin a productive study session.
+
+---
+
+## 🌐 Live Demo
+Experience Zenova in action here: [https://zenova-app.netlify.app/](https://zenova-app.netlify.app/)
+
+## 💬 Feedback & Suggestions
+Your feedback is invaluable to the continuous improvement of Zenova. If you spot any inconsistencies, encounter errors, or have suggestions for improvements, please do not hesitate to reach out. I am fully open to suggestions and eager to enhance the platform's utility for all users.
+
+---
+
 <div align="center">
 Built to empower students everywhere.
 </div>
