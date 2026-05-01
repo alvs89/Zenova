@@ -489,9 +489,9 @@ export function Planner() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
-              className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-1 shadow-lg h-fit border border-indigo-400/30"
+              className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-1 shadow-lg h-fit border border-indigo-400/30 min-w-0 max-w-full overflow-hidden"
             >
-              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-[22px] p-8 h-full flex flex-col items-center text-center">
+              <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-[22px] p-5 sm:p-8 h-full flex flex-col items-center text-center min-w-0 max-w-full overflow-hidden">
               <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6 shadow-sm">
                 <Sparkles size={32} />
               </div>
@@ -510,12 +510,12 @@ export function Planner() {
                   <div className="absolute inset-0 bg-white/20 dark:bg-black/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 </button>
               ) : (
-                <div className="text-left w-full bg-slate-50 dark:bg-slate-800 border border-indigo-100 dark:border-indigo-900 p-6 rounded-2xl mt-4">
-                  <div className="flex justify-between items-center mb-4">
+                <div className="text-left w-full min-w-0 max-w-full overflow-hidden bg-slate-50 dark:bg-slate-800 border border-indigo-100 dark:border-indigo-900 p-4 sm:p-6 rounded-2xl mt-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 min-w-0">
                     <h3 className="font-semibold px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-lg text-sm">Suggested Plan</h3>
-                    <button onClick={handleGenerateSchedule} className="px-3 py-1.5 text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800/60 transition-colors flex items-center gap-1">Regenerate</button>
+                    <button onClick={handleGenerateSchedule} className="px-3 py-1.5 text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-800/60 transition-colors flex items-center gap-1 w-fit">Regenerate</button>
                   </div>
-                    <div className="prose prose-sm md:prose-base prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 shadow-none [&_table]:m-0 [&_table]:border-collapse [&_th]:whitespace-nowrap [&_th]:bg-slate-50 [&_th]:dark:bg-slate-800/80 [&_td]:align-middle">
+                    <div className="prose prose-sm md:prose-base prose-slate dark:prose-invert max-w-none min-w-0 text-slate-700 dark:text-slate-300 shadow-none [overflow-wrap:anywhere] [&_*]:max-w-full [&_li]:[overflow-wrap:anywhere] [&_p]:[overflow-wrap:anywhere] [&_strong]:[overflow-wrap:anywhere] [&_table]:m-0 [&_table]:border-collapse [&_table]:table-fixed [&_th]:bg-slate-50 [&_th]:dark:bg-slate-800/80 [&_th]:[overflow-wrap:anywhere] [&_td]:align-middle [&_td]:[overflow-wrap:anywhere]">
                      <ReactMarkdown 
                        remarkPlugins={[remarkMath, remarkGfm]} 
                        rehypePlugins={[rehypeKatex]}
@@ -526,13 +526,13 @@ export function Planner() {
                            </div>
                          ),
                          th: ({node, ...props}) => (
-                           <th className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700/50" {...props} />
+                           <th className="px-3 sm:px-4 py-3 font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700/50 break-words" {...props} />
                          ),
                          td: ({node, ...props}) => (
-                           <td className="px-4 py-3 border-b border-slate-100 dark:border-slate-800/50 text-slate-700 dark:text-slate-300" {...props} />
+                           <td className="px-3 sm:px-4 py-3 border-b border-slate-100 dark:border-slate-800/50 text-slate-700 dark:text-slate-300 break-words" {...props} />
                          ),
                          p: ({node, ...props}) => (
-                           <p className="whitespace-pre-wrap" {...props} />
+                           <p className="whitespace-pre-wrap break-words" {...props} />
                          )
                        }}
                      >
