@@ -118,12 +118,12 @@ export async function generateChatResponse(messages: { role: string; content: st
     let errorMessage = "Oops! I ran into a bit of trouble connecting to my brain.\n\n";
     if (isQuotaError(error)) {
       if (getApiKeySource() === 'user') {
-        errorMessage += "*(I used the Gemini API key saved in Settings and tried the available Flash models, but Google still returned a quota limit. Please check that this key has Gemini API quota available in Google AI Studio, or try another key.)*";
+        errorMessage += "*(Your saved Gemini API key was used, but Google could not process the request because the key has reached its current usage limit or does not have access to the available AI models. Please check the key in Google AI Studio, enable billing if needed, or save a different Gemini API key in Settings.)*";
       } else {
-        errorMessage += "*(It looks like the default AI quota has been exceeded. You can add your own free Gemini API Key in the **Settings** menu by clicking on the gear icon!)*";
+        errorMessage += "*(The app's default AI access has reached its current usage limit. To continue using the assistant, open **Settings** and save your own Gemini API key.)*";
       }
     } else {
-      errorMessage += `*(Error Details: ${error.message}. If this persists, try adding your own Gemini API Key in the **Settings** menu.)*`;
+      errorMessage += "*(The assistant could not complete your request right now. Please check your internet connection and try again. If the issue continues, open **Settings** and save a valid Gemini API key.)*";
     }
     return errorMessage;
   }

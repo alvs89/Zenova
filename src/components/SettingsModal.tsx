@@ -304,7 +304,7 @@ export function SettingsModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               
               <div className="flex flex-col gap-2">
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  If you encounter quota errors, add your own free Gemini API key. It is saved locally in your browser.
+                  Add a Gemini API key if the assistant reaches its usage limit. Your key is saved only in this browser.
                 </p>
                 <div className="min-w-0">
                   <input 
