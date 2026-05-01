@@ -465,10 +465,10 @@ export function Assistant() {
                 
                 <div className="flex flex-col gap-1 max-w-full break-words">
                   <div className={cn(
-                    "px-4 py-3 rounded-2xl leading-relaxed max-w-full break-words overflow-x-auto",
+                    "px-4 py-3 rounded-2xl leading-relaxed w-fit max-w-full break-words overflow-x-auto",
                     msg.role === 'user' 
-                      ? "bg-indigo-600 text-white rounded-tr-none shadow-sm whitespace-pre-wrap" 
-                      : "bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-800"
+                      ? "self-end bg-indigo-600 text-white rounded-tr-none shadow-sm whitespace-pre-wrap" 
+                      : "self-start bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-800"
                   )}>
                     {editingId === msg.id ? (
                       <div className="flex flex-col gap-2 w-full overflow-hidden box-border">
