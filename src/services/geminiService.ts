@@ -5,6 +5,7 @@ let currentApiKey: string | null = null;
 let currentApiKeySource: 'user' | 'default' | null = null;
 
 const API_KEY_STORAGE_KEY = 'zenova_gemini_api_key';
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
 
 function getStoredUserApiKey(): string {
   if (typeof localStorage === 'undefined') return '';
@@ -30,6 +31,32 @@ function getAI(): GoogleGenAI {
 
 function getApiKeySource(): 'user' | 'default' | null {
   return currentApiKeySource || (getStoredUserApiKey() ? 'user' : null);
+}
+
+function isQuotaError(error: any): boolean {
+  const message = error?.message?.toLowerCase() || '';
+  return error?.message?.includes('429') || message.includes('quota') || message.includes('exhausted');
+}
+
+async function generateContentWithFallback(request: any) {
+  let lastError: any;
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      return await getAI().models.generateContent({
+        ...request,
+        model,
+      });
+    } catch (error: any) {
+      lastError = error;
+      if (!isQuotaError(error)) {
+        throw error;
+      }
+      console.warn(`Gemini quota error for ${model}, trying next model if available.`, error);
+    }
+  }
+
+  throw lastError;
 }
 
 const getInstructions = () => [
@@ -72,8 +99,7 @@ export async function generateChatResponse(messages: { role: string; content: st
       systemInstruction += `\n\nAdditional Context:\n${context}`;
     }
 
-    const response = await getAI().models.generateContent({
-      model: 'gemini-3-flash-preview',
+    const response = await generateContentWithFallback({
       contents: formattedMessages,
       config: {
         systemInstruction: systemInstruction,
@@ -90,9 +116,9 @@ export async function generateChatResponse(messages: { role: string; content: st
     }
     console.error("Gemini API Error:", error);
     let errorMessage = "Oops! I ran into a bit of trouble connecting to my brain.\n\n";
-    if (error?.message?.includes("429") || error?.message?.toLowerCase().includes("quota") || error?.message?.toLowerCase().includes("exhausted")) {
+    if (isQuotaError(error)) {
       if (getApiKeySource() === 'user') {
-        errorMessage += "*(I used the Gemini API key saved in Settings, but Google still returned a quota limit. Please check that this key has Gemini API quota available in Google AI Studio, or try another key.)*";
+        errorMessage += "*(I used the Gemini API key saved in Settings and tried the available Flash models, but Google still returned a quota limit. Please check that this key has Gemini API quota available in Google AI Studio, or try another key.)*";
       } else {
         errorMessage += "*(It looks like the default AI quota has been exceeded. You can add your own free Gemini API Key in the **Settings** menu by clicking on the gear icon!)*";
       }
@@ -105,8 +131,7 @@ export async function generateChatResponse(messages: { role: string; content: st
 
 export async function generateChatTitle(firstMessage: string): Promise<string> {
   try {
-    const response = await getAI().models.generateContent({
-      model: 'gemini-3-flash-preview',
+    const response = await generateContentWithFallback({
       contents: `Generate a concise, 3-5 word title for a chat session starting with this message: "${firstMessage}". Do not use quotes or formatting. Just output the title.`,
       config: {
         temperature: 0.7,
@@ -126,8 +151,7 @@ ${JSON.stringify(tasks, null, 2)}
 Please suggest a brief, optimized study schedule for today based on these tasks. Prioritize 'urgent' and 'important' items.
 Keep it encouraging and structured (e.g., morning/afternoon block or Pomodoro sessions). Respond in Markdown. Do NOT use HTML <br> tags, use standard markdown spacing.`;
 
-    const response = await getAI().models.generateContent({
-      model: 'gemini-3-flash-preview',
+    const response = await generateContentWithFallback({
       contents: prompt,
       config: {
         temperature: 0.5,
