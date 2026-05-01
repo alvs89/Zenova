@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Edit2, Trash2, Check, X, Paperclip, FileText, Image as ImageIcon, Plus, MessageSquare, MoreVertical, Menu } from 'lucide-react';
+import { Send, Bot, User, Loader2, Edit2, Trash2, Check, X, Paperclip, FileText, Image as ImageIcon, Plus, MessageSquare, MoreVertical, Menu, Copy } from 'lucide-react';
 import { ChatMessage, ChatSession } from '@/types';
 import { generateChatResponse, generateChatTitle } from '@/services/geminiService';
 import { cn } from '@/lib/utils';
@@ -41,6 +41,7 @@ export function Assistant() {
   const [editContent, setEditContent] = useState('');
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editChatTitle, setEditChatTitle] = useState('');
@@ -309,6 +310,18 @@ export function Assistant() {
     setMessageToDelete(id);
   };
 
+  const copyMessage = async (msg: ChatMessage) => {
+    try {
+      await navigator.clipboard.writeText(msg.content);
+      setCopiedMessageId(msg.id);
+      window.setTimeout(() => {
+        setCopiedMessageId(currentId => currentId === msg.id ? null : currentId);
+      }, 1500);
+    } catch (error) {
+      console.error('Failed to copy message:', error);
+    }
+  };
+
   const confirmDelete = () => {
     if (messageToDelete && activeChatId) {
       removeMessage(activeChatId, messageToDelete);
@@ -526,6 +539,14 @@ export function Assistant() {
                       "flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity",
                       msg.role === 'user' ? "justify-end" : "justify-start"
                     )}>
+                      <button
+                        onClick={() => copyMessage(msg)}
+                        className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                        title={copiedMessageId === msg.id ? "Copied" : "Copy message"}
+                        aria-label={copiedMessageId === msg.id ? "Message copied" : "Copy message"}
+                      >
+                        {copiedMessageId === msg.id ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
                       {msg.role === 'user' && (
                         <button onClick={() => handleEditClick(msg)} className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Edit message">
                           <Edit2 size={14} />
